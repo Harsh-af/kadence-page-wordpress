@@ -175,28 +175,56 @@
                     </div>
                 </div>
 
-                <div class="product-slider">
-                    <div class="product-content">
-                        <div class="product-info fade-in" id="productInfo">
-                            <div class="product-image">
-                                <img src="<?php echo get_template_directory_uri(); ?>/Images/Product_1.png" alt="Product" id="productImage" />
-                            </div>
+                <?php
+                $args = array(
+                    'post_type' => 'product',
+                    'posts_per_page' => 4
+                );
+                $loop = new WP_Query($args);
+                if ($loop->have_posts()) :
+                ?>
+                    <div class="product-slider" style="display: flex; flex-direction: column;">
+                        <div class="product-content" style="position: relative; min-height: 400px;">
+                            <?php while ($loop->have_posts()) : $loop->the_post();
+                                global $product; ?>
+                                <div class="product-info fade-in" data-product-id="<?php echo get_the_ID(); ?>" style="position: absolute; top: 0; left: 0; width: 100%; opacity: 0; transition: opacity 0.3s ease;">
+                                    <div class="product-image">
+                                        <a href="<?php the_permalink(); ?>">
+                                            <?php echo $product->get_image(); ?>
+                                        </a>
+                                    </div>
 
-                            <h3 class="product-title" id="productTitle">Donner DDP-200PRO Digital Piano with Touchscreen</h3>
+                                    <h3 class="product-title"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
 
-                            <div class="price-container">
-                                <span class="price" id="productPrice">₹4,899.00</span>
-                                <span class="price-discount" id="productOriginalPrice">₹7,506.00</span>
-                                <span class="discount-percentage" id="productDiscount">35% OFF</span>
-                            </div>
+                                    <div class="price-container">
+                                        <?php 
+                                        $regular_price = $product->get_regular_price();
+                                        $sale_price = $product->get_sale_price();
+                                        $current_price = $product->get_price();
+                                        
+                                        if ($sale_price) {
+                                            $discount = round((($regular_price - $sale_price) / $regular_price) * 100);
+                                        ?>
+                                            <span class="price">₹<?php echo number_format($sale_price, 2, '.', ','); ?></span>
+                                            <span class="price-discount">₹<?php echo number_format($regular_price, 2, '.', ','); ?></span>
+                                            <span class="discount-percentage"><?php echo $discount; ?>% OFF</span>
+                                        <?php } else { ?>
+                                            <span class="price">₹<?php echo number_format($current_price, 2, '.', ','); ?></span>
+                                        <?php } ?>
+                                    </div>
+                                </div>
+                            <?php endwhile; ?>
                         </div>
 
-                        <div class="slider-navigation">
+                        <div class="slider-navigation" style="position: relative; z-index: 10; margin-top: 20px; text-align: center;">
                             <button class="nav-button" onclick="prevProduct()"><img src="<?php echo get_template_directory_uri(); ?>/Images/nav_arrow_left.svg" alt="Previous" /></button>
                             <button class="nav-button" onclick="nextProduct()"><img src="<?php echo get_template_directory_uri(); ?>/Images/nav_arrow_right.svg" alt="Next" /></button>
                         </div>
                     </div>
-                </div>
+                <?php
+                endif;
+                wp_reset_postdata();
+                ?>
             </div>
         </div>
     </div>
@@ -305,92 +333,96 @@
     </div>
 
     <script>
-        const products = [
-            {
-                id: 1,
-                image: '<?php echo get_template_directory_uri(); ?>/Images/Product_1.png',
-                title: 'Donner DDP-200PRO Digital Piano with Touchscreen',
-                currentPrice: '₹4,899.00',
-                originalPrice: '₹7,506.00',
-                discount: '35% OFF'
-            },
-            {
-                id: 2,
-                image: '<?php echo get_template_directory_uri(); ?>/Images/Product_2.png',
-                title: 'Donner HUSH™ I Acoustic-Electric Travel Guitar',
-                currentPrice: '₹6,299.00',
-                originalPrice: '₹8,999.00',
-                discount: '30% OFF'
-            },
-            {
-                id: 3,
-                image: '<?php echo get_template_directory_uri(); ?>/Images/Product_3.png',
-                title: 'Donner HUSH™ X PRO Electric Guitar',
-                currentPrice: '₹5,499.00',
-                originalPrice: '₹7,999.00',
-                discount: '31% OFF'
-            },
-            {
-                id: 4,
-                image: '<?php echo get_template_directory_uri(); ?>/Images/Product_4.png',
-                title: 'Donner HUSH™ C Nylon Acoustic-Electric Guitar',
-                currentPrice: '₹8,499.00',
-                originalPrice: '₹12,999.00',
-                discount: '25% OFF'
-            }
-        ];
-
         let currentProduct = 0;
         let currentSlide = 0;
         let isAnimating = false;
 
+        // Get all product info elements dynamically
+        function getProductElements() {
+            return document.querySelectorAll('.product-info');
+        }
+
         function nextProduct() {
             if (isAnimating) return;
             isAnimating = true;
+            const productElements = getProductElements();
+            const products = Array.from(productElements);
+            
+            // Hide current product
+            if (products[currentProduct]) {
+                products[currentProduct].style.opacity = '0';
+            }
+            
             setTimeout(() => {
                 currentProduct = (currentProduct + 1) % products.length;
-                updateProductDisplay();
-                updateImagePointers();
-                setTimeout(() => isAnimating = false, 50);
+                
+                // Show next product
+                setTimeout(() => {
+                    if (products[currentProduct]) {
+                        products[currentProduct].style.opacity = '0';
+                        setTimeout(() => {
+                            products[currentProduct].style.opacity = '1';
+                            updateImagePointers();
+                            setTimeout(() => isAnimating = false, 50);
+                        }, 50);
+                    }
+                }, 150);
             }, 150);
         }
 
         function prevProduct() {
             if (isAnimating) return;
             isAnimating = true;
+            const productElements = getProductElements();
+            const products = Array.from(productElements);
+            
+            // Hide current product
+            if (products[currentProduct]) {
+                products[currentProduct].style.opacity = '0';
+            }
+            
             setTimeout(() => {
                 currentProduct = (currentProduct - 1 + products.length) % products.length;
-                updateProductDisplay();
-                updateImagePointers();
-                setTimeout(() => isAnimating = false, 50);
+                
+                // Show previous product
+                setTimeout(() => {
+                    if (products[currentProduct]) {
+                        products[currentProduct].style.opacity = '0';
+                        setTimeout(() => {
+                            products[currentProduct].style.opacity = '1';
+                            updateImagePointers();
+                            setTimeout(() => isAnimating = false, 50);
+                        }, 50);
+                    }
+                }, 150);
             }, 150);
         }
 
         function goToProduct(index) {
             if (isAnimating || index === currentProduct) return;
             isAnimating = true;
+            const productElements = getProductElements();
+            const products = Array.from(productElements);
+            
+            // Hide current product
+            if (products[currentProduct]) {
+                products[currentProduct].style.opacity = '0';
+            }
+            
             setTimeout(() => {
                 currentProduct = index;
-                updateProductDisplay();
-                updateImagePointers();
-                setTimeout(() => isAnimating = false, 50);
-            }, 150);
-        }
-
-        function updateProductDisplay() {
-            const product = products[currentProduct];
-            const productInfo = document.getElementById('productInfo');
-            productInfo.classList.remove('fade-in');
-            productInfo.classList.add('fade-out');
-            setTimeout(() => {
-                document.getElementById('productImage').src = product.image;
-                document.getElementById('productTitle').textContent = product.title;
-                document.getElementById('productPrice').textContent = product.currentPrice;
-                document.getElementById('productOriginalPrice').textContent = product.originalPrice;
-                document.getElementById('productDiscount').textContent = product.discount;
                 
-                productInfo.classList.remove('fade-out');
-                productInfo.classList.add('fade-in');
+                // Show target product
+                setTimeout(() => {
+                    if (products[currentProduct]) {
+                        products[currentProduct].style.opacity = '0';
+                        setTimeout(() => {
+                            products[currentProduct].style.opacity = '1';
+                            updateImagePointers();
+                            setTimeout(() => isAnimating = false, 50);
+                        }, 50);
+                    }
+                }, 150);
             }, 150);
         }
 
@@ -400,6 +432,18 @@
                 pointer.classList.toggle('active', index === currentProduct);
             });
         }
+
+        // Initialize: hide all products except the first one
+        document.addEventListener('DOMContentLoaded', function() {
+            const products = getProductElements();
+            products.forEach((product, index) => {
+                if (index !== 0) {
+                    product.style.opacity = '0';
+                } else {
+                    product.style.opacity = '1';
+                }
+            });
+        });
 
         function nextSlide() {
             currentSlide = (currentSlide + 1) % 4;
