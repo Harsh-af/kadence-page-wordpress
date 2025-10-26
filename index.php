@@ -93,68 +93,54 @@
                     </div>
                 </div>
             </div>
+            <?php
+            $mobile_args = array(
+                'post_type' => 'product',
+                'posts_per_page' => 4
+            );
+            $mobile_loop = new WP_Query($mobile_args);
+            if ($mobile_loop->have_posts()) :
+            ?>
             <div class="mobile-product-slider_sp">
                 <div class="mobile-slider-container_sp" id="mobileSlider">
                     <div class="mobile-slider-track_sp" id="mobileSliderTrack">
-                        <div class="mobile-product-card_sp">
-                            <div class="mobile-product-image_sp">
-                                <img src="<?php echo get_template_directory_uri(); ?>/Images/guitar_1_sp.png" alt="Acoustic Left Handed Guitar" />
-                            </div>
-                            <div class="mobile-product-info_sp">
-                                <h3 class="mobile-product-title_sp">Donner DDP-200PRO Digital Piano with Touchscreen...</h3>
-                                <div class="mobile-price-container_sp">
-                                    <span class="price">₹4,899.00</span>
-                                    <span class="price-discount">₹7,506.00</span>
-                                    <span class="discount-percentage">25%</span>
+                        <?php while ($mobile_loop->have_posts()) : $mobile_loop->the_post();
+                            global $product; ?>
+                            <div class="mobile-product-card_sp">
+                                <div class="mobile-product-image_sp">
+                                    <a href="<?php the_permalink(); ?>">
+                                        <?php echo $product->get_image(); ?>
+                                    </a>
                                 </div>
-                                <button class="mobile-shop-now-button_sp">Shop now</button>
-                            </div>
-                        </div>
-                        <div class="mobile-product-card_sp">
-                            <div class="mobile-product-image_sp">
-                                <img src="<?php echo get_template_directory_uri(); ?>/Images/guitar_2_sp.png" alt="Electric Guitar Red" />
-                            </div>
-                            <div class="mobile-product-info_sp">
-                                <h3 class="mobile-product-title_sp">Electric Guitar Red with Accessories</h3>
-                                <div class="mobile-price-container_sp">
-                                    <span class="price">₹6,299.00</span>
-                                    <span class="price-discount">₹8,999.00</span>
-                                    <span class="discount-percentage">30%</span>
+                                <div class="mobile-product-info_sp">
+                                    <h3 class="mobile-product-title_sp"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
+                                    <div class="mobile-price-container_sp">
+                                        <?php 
+                                        $regular_price = $product->get_regular_price();
+                                        $sale_price = $product->get_sale_price();
+                                        $current_price = $product->get_price();
+                                        
+                                        if ($sale_price) {
+                                            $discount = round((($regular_price - $sale_price) / $regular_price) * 100);
+                                        ?>
+                                            <span class="price">₹<?php echo number_format($sale_price, 2, '.', ','); ?></span>
+                                            <span class="price-discount">₹<?php echo number_format($regular_price, 2, '.', ','); ?></span>
+                                            <span class="discount-percentage"><?php echo $discount; ?>% OFF</span>
+                                        <?php } else { ?>
+                                            <span class="price">₹<?php echo number_format($current_price, 2, '.', ','); ?></span>
+                                        <?php } ?>
+                                    </div>
+                                    <a href="<?php the_permalink(); ?>"><button class="mobile-shop-now-button_sp">Shop now</button></a>
                                 </div>
-                                <button class="mobile-shop-now-button_sp">Shop now</button>
                             </div>
-                        </div>
-                        <div class="mobile-product-card_sp">
-                            <div class="mobile-product-image_sp">
-                                <img src="<?php echo get_template_directory_uri(); ?>/Images/guitar_1_sp.png" alt="Classic Acoustic Guitar" />
-                            </div>
-                            <div class="mobile-product-info_sp">
-                                <h3 class="mobile-product-title_sp">Classic Acoustic Guitar Premium</h3>
-                                <div class="mobile-price-container_sp">
-                                    <span class="price">₹5,499.00</span>
-                                    <span class="price-discount">₹7,999.00</span>
-                                    <span class="discount-percentage">31%</span>
-                                </div>
-                                <button class="mobile-shop-now-button_sp">Shop now</button>
-                            </div>
-                        </div>
-                        <div class="mobile-product-card_sp">
-                            <div class="mobile-product-image_sp">
-                                <img src="<?php echo get_template_directory_uri(); ?>/Images/guitar_2_sp.png" alt="Electric Guitar Red" />
-                            </div>
-                            <div class="mobile-product-info_sp">
-                                <h3 class="mobile-product-title_sp">Electric Guitar Red with Accessories</h3>
-                                <div class="mobile-price-container_sp">
-                                    <span class="price">₹6,299.00</span>
-                                    <span class="price-discount">₹8,999.00</span>
-                                    <span class="discount-percentage">30%</span>
-                                </div>
-                                <button class="mobile-shop-now-button_sp">Shop now</button>
-                            </div>
-                        </div>
+                        <?php endwhile; ?>
                     </div>
                 </div>
             </div>
+            <?php
+            endif;
+            wp_reset_postdata();
+            ?>
         </div>
 
         <!-- Slider View -->
